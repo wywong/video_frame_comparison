@@ -11,6 +11,7 @@ VIDEO_DOWNLOAD_ROOT = "raw"
 OUTPUT_ROOT = "output"
 DEFAULT_SAMPLE_RATE = 24
 IMAGE_DIFFERENCE_RATE = 0.30
+DEBUG_ON = True
 
 def download_video(url, video_path):
     print("Downloading %s" % url)
@@ -34,7 +35,8 @@ def extract_frames(video_path, videoname, sample_rate=DEFAULT_SAMPLE_RATE):
         found, prev_frame = video.read()
         start_frame += sample_rate
 
-    save_image(output_img_dir, prev_frame, output_filecount)
+    img_name = output_image_name(output_filecount)
+    save_image(output_img_dir, prev_frame, img_name)
 
     if found:
         frame_size = prev_frame.size
@@ -43,25 +45,34 @@ def extract_frames(video_path, videoname, sample_rate=DEFAULT_SAMPLE_RATE):
             if found and i % sample_rate == 0:
                 if are_frames_same(prev_frame, curr_frame, frame_size):
                     output_filecount += 1
-                    save_image(output_img_dir, prev_frame, output_filecount)
-
-                prev_frame = curr_frame
+                    img_name = output_image_name(output_filecount)
+                    save_image(output_img_dir, prev_frame, img_name)
+                    if DEBUG_ON:
+                        img_delta = image_shadow(prev_frame, curr_frame)
+                        save_image(output_img_dir, img_delta, "SHADOW_%s" % img_name)
+                    prev_frame = curr_frame
 
 def prepare_output_dir(output_img_dir):
     if os.path.exists(output_img_dir):
         shutil.rmtree(output_img_dir)
     os.mkdir(output_img_dir)
 
-def save_image(output_img_dir, frame, output_filecount):
-    image_path = os.path.join(output_img_dir, "%04d.jpg" % output_filecount)
+def output_image_name(output_filecount):
+    return "%04d.jpg" % output_filecount
+
+def save_image(output_img_dir, frame, img_name):
+    image_path = os.path.join(output_img_dir, img_name)
     cv2.imwrite(image_path, frame)
 
 def are_frames_same(prev_frame, curr_frame, frame_size):
     frame_diff = curr_frame - prev_frame
-    frame_delta = np.abs(np.sum(frame_diff) / 256.0)
+    frame_delta = np.abs(np.sum(frame_diff) / 255.0)
     diff_percentage = frame_delta / frame_size
     return diff_percentage > IMAGE_DIFFERENCE_RATE
 
+def image_shadow(prev_frame, curr_frame):
+    diff = 255 - cv2.absdiff(prev_frame, curr_frame)
+    return cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
 
 url = input("Video url: ")
