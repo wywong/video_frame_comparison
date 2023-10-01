@@ -11,7 +11,7 @@ import youtube_dl
 VIDEO_DOWNLOAD_ROOT = "raw"
 OUTPUT_ROOT = "output"
 DEFAULT_SAMPLE_RATE = 24
-DEFAULT_DIFFERENCE_THRESHOLD = 0.30
+DEFAULT_DIFFERENCE_THRESHOLD = 0.01
 
 def download_video(url, video_path):
     print("Downloading %s" % url)
@@ -63,7 +63,7 @@ class ImageExtractor:
                 if self.are_frames_same(prev_frame, curr_frame):
                     self.output_filecount += 1
                     img_name = self.output_image_name()
-                    self.save_image(prev_frame, img_name)
+                    self.save_image(curr_frame, img_name)
                     if self.debug_enabled:
                         img_delta = self.image_shadow(prev_frame, curr_frame)
                         self.save_image(img_delta, "SHADOW_%s" % img_name)
@@ -82,10 +82,13 @@ class ImageExtractor:
         cv2.imwrite(image_path, frame)
 
     def are_frames_same(self, prev_frame, curr_frame):
-        frame_diff = curr_frame - prev_frame
-        frame_delta = np.abs(np.sum(frame_diff) / 255.0)
-        diff_percentage = frame_delta / self.frame_size
-        return diff_percentage > self.image_difference_threshold
+        img_delta = self.image_shadow(prev_frame, curr_frame)
+        ret, threshold = cv2.threshold(img_delta, 200, 255, cv2.THRESH_BINARY)
+
+        num_zeros = np.count_nonzero(threshold == 0)
+        percent_pixels_different = 3.0 * num_zeros / self.frame_size
+
+        return percent_pixels_different > self.image_difference_threshold
 
     def image_shadow(self, prev_frame, curr_frame):
         diff = 255 - cv2.absdiff(prev_frame, curr_frame)
