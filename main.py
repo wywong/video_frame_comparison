@@ -83,7 +83,7 @@ class ImageExtractor:
 
     def are_frames_same(self, prev_frame, curr_frame):
         img_delta = self.image_shadow(prev_frame, curr_frame)
-        ret, threshold = cv2.threshold(img_delta, 200, 255, cv2.THRESH_BINARY)
+        ret, threshold = cv2.threshold(img_delta, 200, 255, cv2.THRESH_BINARY_INV)
 
         num_zeros = np.count_nonzero(threshold == 0)
         percent_pixels_different = 3.0 * num_zeros / self.frame_size
@@ -91,7 +91,7 @@ class ImageExtractor:
         return percent_pixels_different > self.image_difference_threshold
 
     def image_shadow(self, prev_frame, curr_frame):
-        diff = 255 - cv2.absdiff(prev_frame, curr_frame)
+        diff = cv2.absdiff(prev_frame, curr_frame)
         return cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
 parser = argparse.ArgumentParser()
