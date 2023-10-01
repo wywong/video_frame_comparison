@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import argparse
 import cv2
 import os
 import numpy as np
@@ -90,10 +91,23 @@ class ImageExtractor:
         diff = 255 - cv2.absdiff(prev_frame, curr_frame)
         return cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--debug",
+                    help="Enable debug output",
+                    action="store_true")
+parser.add_argument("--url",
+                    help="The url of the video we want to process.",
+                    type=str)
+parser.add_argument("--samplerate",
+                    help="The number of frames we want to increment by when comparing",
+                    type=int,
+                    default=DEFAULT_SAMPLE_RATE)
+args = parser.parse_args()
 
-
-url = input("Video url: ")
-image_extractor = ImageExtractor(url, debug_enabled=True)
+url = args.url
+image_extractor = ImageExtractor(url,
+                                 debug_enabled=args.debug,
+                                 sample_rate=args.samplerate)
 
 video_path = image_extractor.video_path
 

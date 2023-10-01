@@ -16,7 +16,7 @@ Extracts frames from a video and ignores consecutive frames that are the same.
 
 Run the command
 
-`python main.py`
+`python main.py --url "https://www.youtube.com/watch?v=dQw4w9WgXcQ"`
 
 This will prompt the user for a link to the video.
 
