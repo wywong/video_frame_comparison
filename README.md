@@ -18,9 +18,7 @@ Run the command
 
 `python main.py --url "https://www.youtube.com/watch?v=dQw4w9WgXcQ"`
 
-This will prompt the user for a link to the video.
-
 The raw video will be downloaded and saved to the `raw/` folder.
 
-The consecutive frames that are considered different will be saved to the `output` folder.
+The consecutive frames that are considered different will be saved to the `output/` folder.
 
